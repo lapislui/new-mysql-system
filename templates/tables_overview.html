@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Database Overview</h1>
+
+{% for table in tables_data %}
+
+<div class="table-card">
+
+<h2>{{table.name}}</h2>
+
+<button onclick="toggle('{{table.name}}')">
+Toggle Structure
+</button>
+
+<div id="data_{{table.name}}">
+
+<table>
+
+<tr>
+{% for c in table.columns %}
+<th>{{c}}</th>
+{% endfor %}
+</tr>
+
+{% for r in table.rows %}
+
+<tr>
+
+{% for v in r %}
+<td>{{v}}</td>
+{% endfor %}
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+</div>
+
+<div id="structure_{{table.name}}" class="hidden">
+
+<table>
+
+<tr>
+
+{% for c in table.structure_columns %}
+<th>{{c}}</th>
+{% endfor %}
+
+</tr>
+
+{% for r in table.structure %}
+
+<tr>
+
+{% for v in r %}
+<td>{{v}}</td>
+{% endfor %}
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+</div>
+
+</div>
+
+<hr>
+
+{% endfor %}
+
+{% endblock %}

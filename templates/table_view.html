@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>{{table}}</h2>
+
+<a href="/structure/{{table}}">View Structure</a>
+
+<a href="/export/{{table}}">Export CSV</a>
+
+<table>
+
+<tr>
+
+{% for c in columns %}
+<th>{{c}}</th>
+{% endfor %}
+
+</tr>
+
+{% for r in rows %}
+
+<tr>
+
+{% for v in r %}
+<td>{{v}}</td>
+{% endfor %}
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+<a href="?page={{page-1}}">Prev</a>
+<a href="?page={{page+1}}">Next</a>
+
+{% endblock %}

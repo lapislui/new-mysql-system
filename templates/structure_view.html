@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>{{table}} Structure</h2>
+
+<table>
+
+<tr>
+
+{% for c in columns %}
+<th>{{c}}</th>
+{% endfor %}
+
+</tr>
+
+{% for r in rows %}
+
+<tr>
+
+{% for v in r %}
+<td>{{v}}</td>
+{% endfor %}
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+{% endblock %}
