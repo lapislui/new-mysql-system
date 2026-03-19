@@ -120,40 +120,48 @@ def export(name):
     )
     
 @routes.route("/tables")
-def all_tables():
+def tables_overview():
 
     conn = get_db()
     cursor = conn.cursor()
 
-    cursor.execute("SHOW TABLES")
-    table_list = [t[0] for t in cursor.fetchall()]
+    cursor.execute("""
+        SELECT 
+        table_name,
+        table_rows,
+        ROUND((data_length + index_length)/1024/1024,2) AS size_mb
+        FROM information_schema.tables
+        WHERE table_schema = DATABASE()
+    """)
 
-    tables = []
-
-    for t in table_list:
-
-        # data
-        cursor.execute(f"SELECT * FROM {t} LIMIT 50")
-        rows = cursor.fetchall()
-        columns = [d[0] for d in cursor.description]
-
-        # structure
-        cursor.execute(f"DESC {t}")
-        structure = cursor.fetchall()
-        structure_columns = [d[0] for d in cursor.description]
-
-        tables.append({
-            "name": t,
-            "rows": rows,
-            "columns": columns,
-            "structure": structure,
-            "structure_columns": structure_columns
-        })
+    tables = cursor.fetchall()
 
     cursor.close()
     conn.close()
 
-    return render_template(
-        "tables_overview.html",
-        tables_data=tables
-    )
+    return render_template("tables_overview.html", tables=tables)
+
+@routes.route("/table_data/<name>")
+def table_data(name):
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute(f"SELECT * FROM {name} LIMIT 50")
+    rows = cursor.fetchall()
+    columns = [d[0] for d in cursor.description]
+
+    cursor.execute(f"DESC {name}")
+    structure = cursor.fetchall()
+    structure_columns = [d[0] for d in cursor.description]
+
+    cursor.close()
+    conn.close()
+
+    return {
+        "columns": columns,
+        "rows": rows,
+        "structure": structure,
+        "structure_columns": structure_columns
+    }
+    

@@ -1,99 +1,242 @@
-document.addEventListener("DOMContentLoaded", function () {
+// =============================
+// LOAD TABLE DATA (LAZY)
+// =============================
 
-    /* -------------------------------
-       Highlight active sidebar link
-    --------------------------------*/
+async function loadTable(name){
 
-    const links = document.querySelectorAll(".sidebar a");
-    const current = window.location.pathname;
+let container = document.getElementById("table_"+name)
 
-    links.forEach(link => {
+if(!container.classList.contains("loaded")){
 
-        if (link.getAttribute("href") === current) {
-            link.style.background = "#2563eb";
-        }
+let res = await fetch("/table_data/"+name)
 
-    });
+let data = await res.json()
 
+renderTable(name,data)
 
-    /* -------------------------------
-       Confirm SQL execution
-    --------------------------------*/
+container.classList.add("loaded")
 
-    const sqlForm = document.querySelector("form");
+}
 
-    if (sqlForm) {
+container.classList.toggle("hidden")
 
-        sqlForm.addEventListener("submit", function (e) {
-
-            const query = document.querySelector("textarea").value
-                .toLowerCase();
-
-            if (
-                query.includes("delete") ||
-                query.includes("drop") ||
-                query.includes("truncate")
-            ) {
-
-                const ok = confirm(
-                    "⚠ Dangerous query detected.\n\nAre you sure?"
-                );
-
-                if (!ok) {
-                    e.preventDefault();
-                }
-
-            }
-
-        });
-
-    }
+}
 
 
-    /* -------------------------------
-       Table column sorting
-    --------------------------------*/
+// =============================
+// RENDER TABLE
+// =============================
 
-    const tables = document.querySelectorAll("table");
+function renderTable(name,data){
 
-    tables.forEach(table => {
+renderDataTable(name,data)
 
-        const headers = table.querySelectorAll("th");
+renderStructureTable(name,data)
 
-        headers.forEach((header, index) => {
+}
 
-            header.style.cursor = "pointer";
 
-            header.addEventListener("click", () => {
+// =============================
+// DATA TABLE
+// =============================
 
-                const rows = Array.from(
-                    table.querySelectorAll("tr:nth-child(n+2)")
-                );
+function renderDataTable(name,data){
 
-                rows.sort((a, b) => {
+let table = document.getElementById("data_table_"+name)
 
-                    const A = a.children[index].innerText;
-                    const B = b.children[index].innerText;
+let html = "<thead><tr>"
 
-                    return A.localeCompare(B, undefined, {numeric:true});
-                });
+data.columns.forEach(col=>{
+html += "<th>"+col+"</th>"
+})
 
-                rows.forEach(r => table.appendChild(r));
+html += "</tr></thead><tbody>"
 
-            });
+data.rows.forEach(row=>{
 
-        });
+html += "<tr>"
 
-    });
+row.forEach(cell=>{
+html += "<td>"+cell+"</td>"
+})
 
-});
+html += "</tr>"
 
-function toggle(name){
+})
 
-let data = document.getElementById("data_"+name)
-let structure = document.getElementById("structure_"+name)
+html += "</tbody>"
 
-data.classList.toggle("hidden")
-structure.classList.toggle("hidden")
+table.innerHTML = html
+
+}
+
+
+// =============================
+// STRUCTURE TABLE
+// =============================
+
+function renderStructureTable(name,data){
+
+let table = document.getElementById("structure_table_"+name)
+
+let html = "<thead><tr>"
+
+data.structure_columns.forEach(col=>{
+html += "<th>"+col+"</th>"
+})
+
+html += "</tr></thead><tbody>"
+
+data.structure.forEach(row=>{
+
+html += "<tr>"
+
+row.forEach(cell=>{
+html += "<td>"+cell+"</td>"
+})
+
+html += "</tr>"
+
+})
+
+html += "</tbody>"
+
+table.innerHTML = html
+
+}
+
+
+// =============================
+// FLIP CARD
+// =============================
+
+function flipCard(name){
+
+let card = document.getElementById("flip_"+name)
+
+card.classList.toggle("flipped")
+
+}
+
+
+// =============================
+// SEARCH TABLE
+// =============================
+
+function searchTable(input,name){
+
+let filter = input.value.toLowerCase()
+
+let rows = document.querySelectorAll(
+"#data_table_"+name+" tbody tr"
+)
+
+rows.forEach(row=>{
+
+let text = row.innerText.toLowerCase()
+
+row.style.display =
+text.includes(filter) ? "" : "none"
+
+})
+
+}
+
+
+// =============================
+// SORT TABLE
+// =============================
+
+function sortTable(tableId,columnIndex){
+
+let table = document.getElementById(tableId)
+
+let rows = Array.from(table.rows).slice(1)
+
+let asc = table.classList.toggle("asc")
+
+rows.sort((a,b)=>{
+
+let A = a.cells[columnIndex].innerText
+let B = b.cells[columnIndex].innerText
+
+return asc
+? A.localeCompare(B,undefined,{numeric:true})
+: B.localeCompare(A,undefined,{numeric:true})
+
+})
+
+rows.forEach(r=>table.appendChild(r))
+
+}
+
+
+// =============================
+// EXPORT CSV
+// =============================
+
+function exportCSV(tableId){
+
+let table = document.getElementById(tableId)
+
+let csv = []
+
+for(let row of table.rows){
+
+let cols = []
+
+for(let cell of row.cells){
+cols.push(cell.innerText)
+}
+
+csv.push(cols.join(","))
+
+}
+
+downloadFile(csv.join("\n"),"table.csv")
+
+}
+
+
+function downloadFile(content,fileName){
+
+let blob = new Blob([content])
+
+let a = document.createElement("a")
+
+a.href = URL.createObjectURL(blob)
+
+a.download = fileName
+
+a.click()
+
+}
+
+
+// =============================
+// SIMPLE SQL RUNNER
+// =============================
+
+async function runSQL(){
+
+let query = document.getElementById("sql_query").value
+
+let res = await fetch("/run_sql",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({query:query})
+
+})
+
+let data = await res.json()
+
+console.log(data)
+
+alert("Query executed")
 
 }

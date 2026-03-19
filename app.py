@@ -1,11 +1,13 @@
 from flask import Flask
 from routes import routes
 from db import get_db
+from crud_routes import crud
+
 
 app = Flask(__name__)
 
 app.register_blueprint(routes)
-
+app.register_blueprint(crud)
 
 @app.context_processor
 def inject_tables():

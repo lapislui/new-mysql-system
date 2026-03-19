@@ -2,75 +2,66 @@
 
 {% block content %}
 
-<h1>Database Overview</h1>
+<h1>Database Explorer</h1>
 
-{% for table in tables_data %}
+{% for t in tables %}
 
-<div class="table-card">
+<div class="table-box">
 
-<h2>{{table.name}}</h2>
+<div class="table-header">
 
-<button onclick="toggle('{{table.name}}')">
-Toggle Structure
+<h2>{{t[0]}}</h2>
+
+<span>Rows: {{t[1]}}</span>
+<span>Size: {{t[2]}} MB</span>
+
+<button onclick="loadTable('{{t[0]}}')">
+Open
 </button>
 
-<div id="data_{{table.name}}">
+</div>
 
-<table>
+<div id="table_{{t[0]}}" class="table-content hidden">
 
-<tr>
-{% for c in table.columns %}
-<th>{{c}}</th>
-{% endfor %}
-</tr>
+<div class="controls">
 
-{% for r in table.rows %}
+<input type="text"
+placeholder="Search column..."
+onkeyup="searchTable(this,'{{t[0]}}')">
 
-<tr>
-
-{% for v in r %}
-<td>{{v}}</td>
-{% endfor %}
-
-</tr>
-
-{% endfor %}
-
-</table>
+<button onclick="flipCard('{{t[0]}}')">
+Structure
+</button>
 
 </div>
 
-<div id="structure_{{table.name}}" class="hidden">
+<div class="flip-card">
 
-<table>
+<div class="flip-inner" id="flip_{{t[0]}}">
 
-<tr>
+<!-- FRONT (DATA) -->
 
-{% for c in table.structure_columns %}
-<th>{{c}}</th>
-{% endfor %}
+<div class="flip-front">
 
-</tr>
+<table id="data_table_{{t[0]}}"></table>
 
-{% for r in table.structure %}
+</div>
 
-<tr>
+<!-- BACK (STRUCTURE) -->
 
-{% for v in r %}
-<td>{{v}}</td>
-{% endfor %}
+<div class="flip-back">
 
-</tr>
-
-{% endfor %}
-
-</table>
+<table id="structure_table_{{t[0]}}"></table>
 
 </div>
 
 </div>
 
-<hr>
+</div>
+
+</div>
+
+</div>
 
 {% endfor %}
 
